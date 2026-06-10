@@ -4,13 +4,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Calendar, MapPin, Sparkles, Users, Trophy, Mic, Building2, Target, CheckCircle2, Clock, Tag, X } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { events, getEventDetail } from "@/lib/events-data";
+import { eventStore } from "@/lib/store";
 
 export const Route = createFileRoute("/events_/$id")({
   loader: ({ params }) => {
+    const events = eventStore.getSnapshot().events;
     const event = events.find(e => e.id === params.id);
     if (!event) throw notFound();
-    return { event, detail: getEventDetail(event.id) };
+    return { event, detail: event.details };
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -126,6 +127,11 @@ function EventDetail() {
           </div>
 
           <aside className="space-y-4">
+            {e.registerUrl && (
+              <a href={e.registerUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full p-4 rounded-2xl gradient-brand text-white font-bold text-lg shadow-glow hover:scale-[1.02] transition-transform">
+                Register Now <ArrowRight className="size-5" />
+              </a>
+            )}
             <div className="glass-card rounded-2xl p-6">
               <div className="text-xs font-bold text-muted-foreground tracking-wide">DATE</div>
               <div className="mt-1 font-semibold flex items-center gap-2"><Calendar className="size-4 text-[#ff3b30]" /> {e.date}</div>

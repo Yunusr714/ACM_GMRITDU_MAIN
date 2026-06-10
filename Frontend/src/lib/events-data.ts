@@ -19,6 +19,7 @@ export type Event = {
   category: "Workshops" | "Hackathons" | "Seminars" | "Competitions" | "Research Activities";
   desc: string;
   image: string;
+  registerUrl?: string;
 };
 
 export const events: Event[] = [
@@ -40,7 +41,6 @@ export type UpcomingEvent = {
   tagline: string;
   category: Event["category"];
   poster: string;
-  supporting: [string, string];
   registerUrl: string;
 };
 
@@ -53,7 +53,6 @@ export const upcomingEvents: UpcomingEvent[] = [
     tagline: "Build production-ready LLM applications with RAG, agents and fine-tuning.",
     category: "Workshops",
     poster: upAi1,
-    supporting: [upAi2, ai],
     registerUrl: "#register-ai-summit-2026",
   },
   {
@@ -64,7 +63,6 @@ export const upcomingEvents: UpcomingEvent[] = [
     tagline: "₹3L prize pool. 200+ hackers. One unforgettable weekend of building.",
     category: "Hackathons",
     poster: upHack1,
-    supporting: [upHack2, hack],
     registerUrl: "#register-hackfest-2026",
   },
   {
@@ -75,7 +73,6 @@ export const upcomingEvents: UpcomingEvent[] = [
     tagline: "React, TypeScript, edge deployment — ship a real product in 5 days.",
     category: "Workshops",
     poster: upWeb1,
-    supporting: [upWeb2, web],
     registerUrl: "#register-web-bootcamp-2026",
   },
 ];

@@ -78,14 +78,6 @@ export function UpcomingEventsCarousel() {
                             <div className="flex items-center gap-2"><Calendar className="size-4 text-[#ff3b30]" /> <span className="font-semibold">{e.date}</span></div>
                             <div className="flex items-center gap-2"><MapPin className="size-4 text-[#ff3b30]" /> {e.venue}</div>
                           </div>
-                          {/* Supporting thumbnails */}
-                          <div className="mt-5 grid grid-cols-2 gap-2">
-                            {e.supporting.map((src, i) => (
-                              <div key={i} className="relative aspect-[16/10] rounded-xl overflow-hidden">
-                                <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-                              </div>
-                            ))}
-                          </div>
                         </motion.div>
                       </AnimatePresence>
 

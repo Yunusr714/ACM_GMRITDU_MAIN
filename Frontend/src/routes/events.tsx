@@ -5,7 +5,9 @@ import { Calendar, Images, ArrowRight } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { UpcomingEventsCarousel } from "@/components/UpcomingEventsCarousel";
-import { events, type Event } from "@/lib/events-data";
+import { type Event } from "@/lib/events-data";
+import { useEventStore } from "@/lib/store";
+
 
 const categories = ["All", "Workshops", "Hackathons", "Seminars", "Competitions", "Research Activities"] as const;
 
@@ -22,6 +24,7 @@ export const Route = createFileRoute("/events")({
 });
 
 function EventsPage() {
+  const { events } = useEventStore();
   const [filter, setFilter] = useState<(typeof categories)[number]>("All");
   const filtered = filter === "All" ? events : events.filter(e => e.category === filter);
 
