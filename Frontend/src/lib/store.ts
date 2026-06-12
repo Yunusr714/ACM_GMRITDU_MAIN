@@ -1,7 +1,18 @@
-import { events as defaultEvents, eventDetails as defaultEventDetails, Event, EventDetail } from "./events-data";
+import { Event, EventDetail } from "./events-data";
 import { useCallback, useSyncExternalStore } from "react";
 
-// The full event type combining summary and details for storage
+const API_URL = "http://localhost:5000/api";
+const BACKEND_URL = "http://localhost:5000";
+
+// Ensure upload URLs always point to the backend, not the frontend
+function normalizeUrl(url: string): string {
+  if (url.includes("/uploads/")) {
+    // Replace any host:port with the backend URL
+    return url.replace(/https?:\/\/[^/]+\/uploads/, `${BACKEND_URL}/uploads`);
+  }
+  return url;
+}
+
 export type StoredEvent = Event & {
   details: EventDetail;
   files: { id: string; name: string; url: string; size: string }[];
@@ -9,28 +20,7 @@ export type StoredEvent = Event & {
 
 type StoreState = {
   events: StoredEvent[];
-};
-
-// Initialize from existing data if local storage is empty
-const initializeStore = (): StoreState => {
-  const defaultStored: StoredEvent[] = defaultEvents.map((e) => ({
-    ...e,
-    details: defaultEventDetails[e.id] ?? {
-      participants: "0",
-      teams: "0",
-      mentors: "0",
-      speakers: [],
-      organizers: [],
-      venue: "TBD",
-      overview: "",
-      objectives: [],
-      impact: [],
-      gallery: [],
-      duration: "1 Day",
-    },
-    files: [],
-  }));
-  return { events: defaultStored };
+  isLoading: boolean;
 };
 
 class EventStore {
@@ -39,27 +29,24 @@ class EventStore {
 
   constructor() {
     this.listeners = new Set();
-    
+    this.state = { events: [], isLoading: true };
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("acm_event_store");
-      if (stored) {
-        try {
-          this.state = JSON.parse(stored);
-        } catch (e) {
-          this.state = initializeStore();
-        }
-      } else {
-        this.state = initializeStore();
-        this.persist();
-      }
-    } else {
-      this.state = initializeStore();
+      this.fetchEvents();
     }
   }
 
-  private persist() {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("acm_event_store", JSON.stringify(this.state));
+  async fetchEvents() {
+    try {
+      const response = await fetch(`${API_URL}/events`);
+      if (response.ok) {
+        const events = await response.json();
+        this.state = { events, isLoading: false };
+      } else {
+        this.state = { ...this.state, isLoading: false };
+      }
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
+      this.state = { ...this.state, isLoading: false };
     }
     this.emitChange();
   }
@@ -80,83 +67,175 @@ class EventStore {
   }
 
   // Actions
-  addEvent(event: StoredEvent) {
-    this.state = { ...this.state, events: [event, ...this.state.events] };
-    this.persist();
+  async addEvent(event: Partial<StoredEvent>) {
+    try {
+      const response = await fetch(`${API_URL}/events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(event),
+      });
+      if (response.ok) {
+        const saved = await response.json();
+        this.state = { ...this.state, events: [saved, ...this.state.events] };
+        this.emitChange();
+        return saved;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return null;
   }
 
-  updateEvent(id: string, updates: Partial<StoredEvent>) {
-    this.state = {
-      ...this.state,
-      events: this.state.events.map((e) => (e.id === id ? { ...e, ...updates } : e)),
-    };
-    this.persist();
+  async updateEvent(id: string, updates: Partial<StoredEvent>) {
+    try {
+      const response = await fetch(`${API_URL}/events/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        this.state = {
+          ...this.state,
+          events: this.state.events.map((e) => (e.id === id ? updated : e)),
+        };
+        this.emitChange();
+        return updated;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return null;
   }
 
-  deleteEvent(id: string) {
-    this.state = {
-      ...this.state,
-      events: this.state.events.filter((e) => e.id !== id),
-    };
-    this.persist();
+  async deleteEvent(id: string) {
+    try {
+      await fetch(`${API_URL}/events/${id}`, { method: "DELETE" });
+      this.state = {
+        ...this.state,
+        events: this.state.events.filter((e) => e.id !== id),
+      };
+      this.emitChange();
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  addFile(eventId: string, file: { id: string; name: string; url: string; size: string }) {
-    this.state = {
-      ...this.state,
-      events: this.state.events.map((e) => {
-        if (e.id === eventId) {
-          return { ...e, files: [...e.files, file] };
+  async addFile(eventId: string, file: File) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch(`${API_URL}/events/${eventId}/files`, {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const savedFile = await response.json();
+        if (savedFile.url) savedFile.url = normalizeUrl(savedFile.url);
+        this.state = {
+          ...this.state,
+          events: this.state.events.map((e) => {
+            if (e.id === eventId) {
+              return { ...e, files: [...e.files, savedFile] };
+            }
+            return e;
+          }),
+        };
+        this.emitChange();
+        return savedFile;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return null;
+  }
+
+  async deleteFile(eventId: string, fileId: string) {
+    try {
+      await fetch(`${API_URL}/events/${eventId}/files/${fileId}`, { method: "DELETE" });
+      this.state = {
+        ...this.state,
+        events: this.state.events.map((e) => {
+          if (e.id === eventId) {
+            return { ...e, files: e.files.filter((f) => f.id !== fileId) };
+          }
+          return e;
+        }),
+      };
+      this.emitChange();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async addImage(eventId: string, file: File) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(`${API_URL}/events/${eventId}/images`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const url = normalizeUrl(data.url);
+        this.state = {
+          ...this.state,
+          events: this.state.events.map((e) => {
+            if (e.id === eventId) {
+              return {
+                ...e,
+                details: { ...e.details, gallery: [url, ...(e.details?.gallery || [])] },
+              };
+            }
+            return e;
+          }),
+        };
+        
+        // Also update the event itself in the backend with the new gallery
+        const event = this.state.events.find(e => e.id === eventId);
+        if (event) {
+          await fetch(`${API_URL}/events/${eventId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ details: event.details }),
+          });
         }
-        return e;
-      }),
-    };
-    this.persist();
+        
+        this.emitChange();
+        return url;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return null;
   }
 
-  deleteFile(eventId: string, fileId: string) {
-    this.state = {
-      ...this.state,
-      events: this.state.events.map((e) => {
-        if (e.id === eventId) {
-          return { ...e, files: e.files.filter((f) => f.id !== fileId) };
-        }
-        return e;
-      }),
-    };
-    this.persist();
-  }
+  async deleteImage(eventId: string, imageUrl: string) {
+    try {
+      const response = await fetch(`${API_URL}/events/${eventId}/images`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl }),
+      });
 
-  addImage(eventId: string, imageUrl: string) {
-    this.state = {
-      ...this.state,
-      events: this.state.events.map((e) => {
-        if (e.id === eventId) {
-          return {
-            ...e,
-            details: { ...e.details, gallery: [imageUrl, ...e.details.gallery] },
-          };
-        }
-        return e;
-      }),
-    };
-    this.persist();
-  }
-
-  deleteImage(eventId: string, imageUrl: string) {
-    this.state = {
-      ...this.state,
-      events: this.state.events.map((e) => {
-        if (e.id === eventId) {
-          return {
-            ...e,
-            details: { ...e.details, gallery: e.details.gallery.filter((img) => img !== imageUrl) },
-          };
-        }
-        return e;
-      }),
-    };
-    this.persist();
+      if (response.ok) {
+        const updatedEvent = await response.json();
+        this.state = {
+          ...this.state,
+          events: this.state.events.map((e) =>
+            e.id === eventId ? { ...e, details: updatedEvent.details } : e
+          ),
+        };
+        this.emitChange();
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 
@@ -166,17 +245,18 @@ export function useEventStore() {
   const state = useSyncExternalStore(
     useCallback((onStoreChange) => eventStore.subscribe(onStoreChange), []),
     () => eventStore.getSnapshot(),
-    () => eventStore.getSnapshot() // For SSR, just return snapshot since no localstorage
+    () => eventStore.getSnapshot()
   );
 
   return {
     events: state.events,
-    addEvent: (e: StoredEvent) => eventStore.addEvent(e),
+    isLoading: state.isLoading,
+    addEvent: (e: Partial<StoredEvent>) => eventStore.addEvent(e),
     updateEvent: (id: string, updates: Partial<StoredEvent>) => eventStore.updateEvent(id, updates),
     deleteEvent: (id: string) => eventStore.deleteEvent(id),
-    addFile: (eventId: string, file: { id: string; name: string; url: string; size: string }) => eventStore.addFile(eventId, file),
+    addFile: (eventId: string, file: File) => eventStore.addFile(eventId, file),
     deleteFile: (eventId: string, fileId: string) => eventStore.deleteFile(eventId, fileId),
-    addImage: (eventId: string, imageUrl: string) => eventStore.addImage(eventId, imageUrl),
+    addImage: (eventId: string, file: File) => eventStore.addImage(eventId, file),
     deleteImage: (eventId: string, imageUrl: string) => eventStore.deleteImage(eventId, imageUrl),
   };
 }

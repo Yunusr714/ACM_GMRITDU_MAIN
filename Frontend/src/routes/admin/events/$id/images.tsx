@@ -17,37 +17,45 @@ function AdminEventImages() {
   if (!event) return null;
 
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const isFull = (event.details?.gallery?.length || 0) >= 2;
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isFull) return;
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
-    // Simulate upload delay and convert to local object URL
-    setTimeout(() => {
-      const url = URL.createObjectURL(file);
-      addImage(id, url);
-      setUploading(false);
-    }, 1000);
+    await addImage(id, file);
+    setUploading(false);
   };
 
   return (
     <div className="space-y-8">
       <div>
-        <div className="bg-white border-dashed border-2 border-zinc-300 shadow-sm rounded-3xl p-8 text-center hover:border-[#ff3b30] transition-colors cursor-pointer relative h-full flex flex-col justify-center min-h-[200px] text-zinc-900">
+        <div className={`bg-white border-dashed border-2 ${isFull ? 'border-zinc-200 bg-zinc-50/50 cursor-not-allowed' : 'border-zinc-300 hover:border-[#ff3b30] cursor-pointer'} shadow-sm rounded-3xl p-8 text-center transition-colors relative h-full flex flex-col justify-center min-h-[200px] text-zinc-900`}>
           <input 
             type="file" 
             accept="image/*"
             onChange={handleFileUpload} 
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
-            disabled={uploading}
+            className="absolute inset-0 w-full h-full opacity-0 z-10 disabled:cursor-not-allowed cursor-pointer" 
+            disabled={uploading || isFull}
           />
-          <div className="flex flex-col items-center justify-center space-y-4">
+          <div className={`flex flex-col items-center justify-center space-y-4 ${isFull ? 'opacity-50' : ''}`}>
             <div className="p-4 rounded-full bg-zinc-50 text-zinc-500">
               {uploading ? <div className="size-8 border-4 border-zinc-200 border-t-[#ff3b30] rounded-full animate-spin" /> : <Upload className="size-8" />}
             </div>
             <div>
-              <h3 className="font-bold text-lg text-zinc-900">Upload Image</h3>
-              <p className="text-sm text-zinc-500 mt-1">Select an image file from your device</p>
+              {isFull ? (
+                <>
+                  <h3 className="font-bold text-lg text-zinc-900">Gallery Full</h3>
+                  <p className="text-sm text-zinc-500 mt-1">Maximum 2 images allowed. Delete an image to upload more.</p>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-bold text-lg text-zinc-900">Upload Image</h3>
+                  <p className="text-sm text-zinc-500 mt-1">Select an image file from your device</p>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -1,13 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Images, ArrowRight } from "lucide-react";
+import { Calendar, Images, ArrowRight, MapPin } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { UpcomingEventsCarousel } from "@/components/UpcomingEventsCarousel";
-import { type Event } from "@/lib/events-data";
-import { useEventStore } from "@/lib/store";
-
+import { useEventStore, type StoredEvent } from "@/lib/store";
 
 const categories = ["All", "Workshops", "Hackathons", "Seminars", "Competitions", "Research Activities"] as const;
 
@@ -24,8 +21,12 @@ export const Route = createFileRoute("/events")({
 });
 
 function EventsPage() {
-  const { events } = useEventStore();
+  const { events, isLoading } = useEventStore();
   const [filter, setFilter] = useState<(typeof categories)[number]>("All");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
   const filtered = filter === "All" ? events : events.filter(e => e.category === filter);
 
   return (
@@ -46,9 +47,6 @@ function EventsPage() {
           </motion.p>
         </div>
       </section>
-
-      {/* Upcoming events carousel */}
-      <UpcomingEventsCarousel />
 
       {/* Filters */}
       <section className="px-6 mb-10">
@@ -71,38 +69,51 @@ function EventsPage() {
 
       {/* Grid */}
       <section className="px-6 pb-24">
-        <div className="max-w-7xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((e, i) => (
-            <EventCard key={e.id} e={e} i={i} />
-          ))}
-        </div>
-        {filtered.length === 0 && (
-          <p className="text-center text-muted-foreground py-20">No events in this category yet.</p>
+        {!mounted || isLoading ? (
+          <div className="max-w-7xl mx-auto text-center py-20">
+            <div className="size-10 border-4 border-zinc-200 border-t-[#ff3b30] rounded-full animate-spin mx-auto" />
+            <p className="mt-4 text-muted-foreground">Loading events...</p>
+          </div>
+        ) : (
+          <>
+            <div className="max-w-7xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filtered.map((e, i) => (
+                <EventCard key={e.id} e={e} i={i} />
+              ))}
+            </div>
+            {filtered.length === 0 && (
+              <p className="text-center text-muted-foreground py-20">No events in this category yet.</p>
+            )}
+          </>
         )}
       </section>
 
-      {/* Stats block */}
-      <section className="px-6 pb-24">
-        <div className="max-w-5xl mx-auto glass-card rounded-3xl p-10 grid grid-cols-3 gap-6 text-center">
-          {[
-            { v: "150", l: "Participants" },
-            { v: "20", l: "Teams" },
-            { v: "6", l: "Mentors" },
-          ].map(s => (
-            <div key={s.l}>
-              <div className="text-4xl md:text-5xl font-bold gradient-text font-display">{s.v}</div>
-              <div className="mt-2 text-sm text-muted-foreground font-medium">{s.l}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* Dynamic stats */}
+      {mounted && !isLoading && events.length > 0 && (
+        <section className="px-6 pb-24">
+          <div className="max-w-5xl mx-auto glass-card rounded-3xl p-10 grid grid-cols-3 gap-6 text-center">
+            {[
+              { v: events.length.toString(), l: "Total Events" },
+              { v: events.reduce((acc, e) => acc + (e.files?.length || 0), 0).toString(), l: "Resources Shared" },
+              { v: events.reduce((acc, e) => acc + (e.details?.gallery?.length || 0), 0).toString(), l: "Gallery Photos" },
+            ].map(s => (
+              <div key={s.l}>
+                <div className="text-4xl md:text-5xl font-bold gradient-text font-display">{s.v}</div>
+                <div className="mt-2 text-sm text-muted-foreground font-medium">{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <Footer />
     </div>
   );
 }
 
-function EventCard({ e, i }: { e: Event; i: number }) {
+function EventCard({ e, i }: { e: StoredEvent; i: number }) {
+  const galleryCount = e.details?.gallery?.length || 0;
+
   return (
     <motion.article
       layout
@@ -116,18 +127,21 @@ function EventCard({ e, i }: { e: Event; i: number }) {
         <span className="absolute top-3 left-3 rounded-full gradient-brand text-white px-3 py-1 text-xs font-bold">{e.category}</span>
       </div>
       <div className="p-6">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Calendar className="size-3.5" /> {e.date}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5"><Calendar className="size-3.5" /> {e.date}</span>
+          {(e.venue || e.details?.venue) && <span className="flex items-center gap-1.5"><MapPin className="size-3.5" /> {e.venue || e.details?.venue}</span>}
         </div>
         <h3 className="mt-2 font-bold text-xl leading-snug">{e.title}</h3>
-        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{e.desc}</p>
+        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{e.desc || e.overview || e.details?.overview}</p>
         <div className="mt-5 flex items-center justify-between">
           <Link to="/events/$id" params={{ id: e.id }} className="text-sm font-semibold gradient-text inline-flex items-center gap-1 group/btn">
             View Details <ArrowRight className="size-3.5 group-hover/btn:translate-x-1 transition-transform" />
           </Link>
-          <button className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full glass px-3 py-1.5 hover:gradient-brand hover:text-white transition-all">
-            <Images className="size-3.5" /> Gallery
-          </button>
+          {galleryCount > 0 && (
+            <Link to="/events/$id" params={{ id: e.id }} className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full glass px-3 py-1.5 hover:gradient-brand hover:text-white transition-all">
+              <Images className="size-3.5" /> {galleryCount} Photos
+            </Link>
+          )}
         </div>
       </div>
     </motion.article>

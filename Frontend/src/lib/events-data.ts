@@ -20,6 +20,8 @@ export type Event = {
   desc: string;
   image: string;
   registerUrl?: string;
+  overview?: string;
+  venue?: string;
 };
 
 export const events: Event[] = [

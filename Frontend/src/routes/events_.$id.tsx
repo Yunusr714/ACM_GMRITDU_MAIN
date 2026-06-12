@@ -1,24 +1,13 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Calendar, MapPin, Sparkles, Users, Trophy, Mic, Building2, Target, CheckCircle2, Clock, Tag, X } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Sparkles, Users, Trophy, Mic, Building2, Target, CheckCircle2, Clock, Tag, X, ArrowRight, FileText, Download } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { eventStore } from "@/lib/store";
+import { useEventStore, type StoredEvent } from "@/lib/store";
 
 export const Route = createFileRoute("/events_/$id")({
-  loader: ({ params }) => {
-    const events = eventStore.getSnapshot().events;
-    const event = events.find(e => e.id === params.id);
-    if (!event) throw notFound();
-    return { event, detail: event.details };
-  },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: `${loaderData?.event.title ?? "Event"} — ACM Chapter` },
-      { name: "description", content: loaderData?.event.desc ?? "" },
-    ],
-  }),
+  component: EventDetail,
   notFoundComponent: () => (
     <div className="min-h-screen grid place-items-center px-6">
       <div className="text-center">
@@ -34,12 +23,54 @@ export const Route = createFileRoute("/events_/$id")({
       <button onClick={reset} className="rounded-xl gradient-brand text-white px-5 py-3">Retry</button>
     </div>
   ),
-  component: EventDetail,
 });
 
 function EventDetail() {
-  const { event: e, detail: d } = Route.useLoaderData();
+  const { id } = Route.useParams();
+  const { events, isLoading } = useEventStore();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted || isLoading) {
+    return (
+      <div className="min-h-screen overflow-x-hidden">
+        <Navbar />
+        <div className="pt-40 grid place-items-center">
+          <div className="text-center">
+            <div className="size-10 border-4 border-zinc-200 border-t-[#ff3b30] rounded-full animate-spin mx-auto" />
+            <p className="mt-4 text-muted-foreground">Loading event...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const e = events.find(ev => ev.id === id);
+
+  if (!e) {
+    return (
+      <div className="min-h-screen overflow-x-hidden">
+        <Navbar />
+        <div className="pt-40 grid place-items-center">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold">Event not found</h1>
+            <Link to="/events" className="mt-4 inline-flex items-center gap-2 gradient-text font-semibold">
+              <ArrowLeft className="size-4" /> Back to events
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const d = e.details || {} as any;
+  const today = new Date().toISOString().split("T")[0];
+  const isUpcoming = e.date >= today;
+  const galleryImages = (d.gallery || []).filter((src: string) => src !== e.image);
 
   return (
     <div className="min-h-screen overflow-x-hidden">
@@ -57,77 +88,68 @@ function EventDetail() {
             <div className="absolute bottom-6 left-6 right-6 md:bottom-10 md:left-10 md:right-10 text-white">
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-full gradient-brand px-3 py-1 text-xs font-bold">{e.category}</span>
-                <span className="rounded-full bg-white/20 backdrop-blur px-3 py-1 text-xs font-bold">COMPLETED</span>
+                <span className="rounded-full bg-white/20 backdrop-blur px-3 py-1 text-xs font-bold">
+                  {isUpcoming ? "UPCOMING" : "COMPLETED"}
+                </span>
               </div>
               <h1 className="mt-3 text-3xl md:text-5xl font-bold max-w-3xl">{e.title}</h1>
               <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
                 <span className="inline-flex items-center gap-1.5"><Calendar className="size-4" /> {e.date}</span>
-                <span className="inline-flex items-center gap-1.5"><MapPin className="size-4" /> {d.venue}</span>
+                {(e.venue || d.venue) && <span className="inline-flex items-center gap-1.5"><MapPin className="size-4" /> {e.venue || d.venue}</span>}
               </div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Registration stats */}
-      <section className="px-4 sm:px-6 pb-12">
-        <div className="max-w-6xl mx-auto grid sm:grid-cols-3 gap-4">
-          {[
-            { icon: Users, value: d.participants, label: "Registered Participants" },
-            { icon: Trophy, value: d.teams, label: "Teams Participated" },
-            { icon: Mic, value: d.mentors, label: "Mentors & Speakers" },
-          ].map(s => (
-            <div key={s.label} className="glass-card rounded-3xl p-6 flex items-center gap-4">
-              <div className="size-14 rounded-2xl gradient-brand grid place-items-center text-white shrink-0">
-                <s.icon className="size-6" />
-              </div>
-              <div>
-                <div className="text-3xl font-bold gradient-text font-display leading-none">{s.value}</div>
-                <div className="text-xs text-muted-foreground mt-1.5 font-medium">{s.label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+
 
       {/* Description + sidebar */}
       <section className="px-4 sm:px-6 pb-16">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
+            {/* About */}
             <div className="glass-card rounded-3xl p-8">
               <h2 className="text-2xl font-bold">About the event</h2>
-              <p className="mt-4 text-muted-foreground leading-relaxed">{d.overview}</p>
+              {e.desc && <p className="mt-4 text-lg font-medium text-foreground">{e.desc}</p>}
+              {(e.overview || d.overview) && <p className="mt-4 text-muted-foreground leading-relaxed whitespace-pre-wrap">{e.overview || d.overview}</p>}
 
-              <h3 className="mt-8 text-xl font-bold flex items-center gap-2"><Target className="size-5 text-[#ff3b30]" /> Objectives & Activities</h3>
-              <ul className="mt-4 space-y-3">
-                {d.objectives.map((o: string) => (
-                  <li key={o} className="flex items-start gap-3 text-sm">
-                    <CheckCircle2 className="size-5 text-[#ff3b30] shrink-0 mt-0.5" />
-                    <span>{o}</span>
-                  </li>
-                ))}
-              </ul>
+              {d.objectives && d.objectives.length > 0 && (
+                <>
+                  <h3 className="mt-8 text-xl font-bold flex items-center gap-2"><Target className="size-5 text-[#ff3b30]" /> Objectives & Activities</h3>
+                  <ul className="mt-4 space-y-3">
+                    {d.objectives.map((o: string) => (
+                      <li key={o} className="flex items-start gap-3 text-sm">
+                        <CheckCircle2 className="size-5 text-[#ff3b30] shrink-0 mt-0.5" />
+                        <span>{o}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
 
-            {/* Impact */}
-            <div className="rounded-3xl p-8 gradient-brand text-white shadow-glow">
-              <div className="flex items-center gap-2">
-                <Sparkles className="size-5" />
-                <h3 className="text-xl font-bold">Impact & Achievements</h3>
+            {/* Impact - only show if data exists */}
+            {d.impact && d.impact.length > 0 && (
+              <div className="rounded-3xl p-8 gradient-brand text-white shadow-glow">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="size-5" />
+                  <h3 className="text-xl font-bold">Impact & Achievements</h3>
+                </div>
+                <div className="mt-6 grid sm:grid-cols-2 gap-4">
+                  {d.impact.map((i: { value: string; label: string }) => (
+                    <div key={i.label} className="rounded-2xl bg-white/15 backdrop-blur p-5">
+                      <div className="text-3xl font-bold font-display leading-none">{i.value}</div>
+                      <div className="text-sm mt-2 opacity-90">{i.label}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="mt-6 grid sm:grid-cols-2 gap-4">
-                {d.impact.map((i: { value: string; label: string }) => (
-                  <div key={i.label} className="rounded-2xl bg-white/15 backdrop-blur p-5">
-                    <div className="text-3xl font-bold font-display leading-none">{i.value}</div>
-                    <div className="text-sm mt-2 opacity-90">{i.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
 
           <aside className="space-y-4">
-            {e.registerUrl && (
+            {isUpcoming && e.registerUrl && (
               <a href={e.registerUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full p-4 rounded-2xl gradient-brand text-white font-bold text-lg shadow-glow hover:scale-[1.02] transition-transform">
                 Register Now <ArrowRight className="size-5" />
               </a>
@@ -136,48 +158,47 @@ function EventDetail() {
               <div className="text-xs font-bold text-muted-foreground tracking-wide">DATE</div>
               <div className="mt-1 font-semibold flex items-center gap-2"><Calendar className="size-4 text-[#ff3b30]" /> {e.date}</div>
             </div>
-            <div className="glass-card rounded-2xl p-6">
-              <div className="text-xs font-bold text-muted-foreground tracking-wide">VENUE</div>
-              <div className="mt-1 font-semibold flex items-center gap-2"><MapPin className="size-4 text-[#ff3b30]" /> {d.venue}</div>
-            </div>
-            <div className="glass-card rounded-2xl p-6">
-              <div className="text-xs font-bold text-muted-foreground tracking-wide">DURATION</div>
-              <div className="mt-1 font-semibold flex items-center gap-2"><Clock className="size-4 text-[#ff3b30]" /> {d.duration}</div>
-            </div>
-            <div className="glass-card rounded-2xl p-6">
-              <div className="text-xs font-bold text-muted-foreground tracking-wide">CATEGORY</div>
-              <div className="mt-1 font-semibold flex items-center gap-2"><Tag className="size-4 text-[#ff3b30]" /> {e.category}</div>
-            </div>
-            <div className="glass-card rounded-2xl p-6">
-              <div className="text-xs font-bold text-muted-foreground tracking-wide flex items-center gap-2"><Building2 className="size-3.5" /> ORGANIZERS</div>
-              <ul className="mt-2 space-y-1 text-sm font-medium">
-                {d.organizers.map((o: string) => <li key={o}>• {o}</li>)}
-              </ul>
-            </div>
-            <div className="glass-card rounded-2xl p-6">
-              <div className="text-xs font-bold text-muted-foreground tracking-wide flex items-center gap-2"><Mic className="size-3.5" /> SPEAKERS & MENTORS</div>
-              <ul className="mt-2 space-y-1 text-sm font-medium">
-                {d.speakers.map((s: string) => <li key={s}>• {s}</li>)}
-              </ul>
-            </div>
+            {(e.venue || d.venue) && (
+              <div className="glass-card rounded-2xl p-6">
+                <div className="text-xs font-bold text-muted-foreground tracking-wide">VENUE</div>
+                <div className="mt-1 font-semibold flex items-center gap-2"><MapPin className="size-4 text-[#ff3b30]" /> {e.venue || d.venue}</div>
+              </div>
+            )}
+            {d.duration && (
+              <div className="glass-card rounded-2xl p-6">
+                <div className="text-xs font-bold text-muted-foreground tracking-wide">DURATION</div>
+                <div className="mt-1 font-semibold flex items-center gap-2"><Clock className="size-4 text-[#ff3b30]" /> {d.duration}</div>
+              </div>
+            )}
+
+            {d.speakers && d.speakers.length > 0 && (
+              <div className="glass-card rounded-2xl p-6">
+                <div className="text-xs font-bold text-muted-foreground tracking-wide flex items-center gap-2"><Mic className="size-3.5" /> SPEAKERS & MENTORS</div>
+                <ul className="mt-2 space-y-1 text-sm font-medium">
+                  {d.speakers.map((s: string) => <li key={s}>• {s}</li>)}
+                </ul>
+              </div>
+            )}
           </aside>
         </div>
       </section>
 
-      {/* Masonry gallery */}
-      <section className="px-4 sm:px-6 pb-24">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-2">Event <span className="gradient-text">Gallery</span></h2>
-          <p className="text-muted-foreground mb-8">Captured moments from the event</p>
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 [column-fill:_balance]">
-            {d.gallery.map((src: string, i: number) => (
-              <div key={i} className="mb-4 break-inside-avoid rounded-2xl overflow-hidden shadow-card group cursor-pointer" onClick={() => setSelectedImage(src)}>
-                <img src={src} alt="" loading="lazy" className={`w-full object-cover group-hover:scale-105 transition-transform duration-500 ${i % 3 === 0 ? "aspect-[4/5]" : i % 3 === 1 ? "aspect-square" : "aspect-[4/3]"}`} />
-              </div>
-            ))}
+      {/* Gallery - only show if images exist */}
+      {galleryImages.length > 0 && (
+        <section className="px-4 sm:px-6 pb-24">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold mb-2">Event <span className="gradient-text">Gallery</span></h2>
+            <p className="text-muted-foreground mb-8">Captured moments from the event</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {galleryImages.map((src: string, i: number) => (
+                <div key={i} className="rounded-2xl overflow-hidden shadow-card group cursor-pointer" onClick={() => setSelectedImage(src)}>
+                  <img src={src} alt="" loading="lazy" className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-500" />
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <AnimatePresence>
         {selectedImage && (

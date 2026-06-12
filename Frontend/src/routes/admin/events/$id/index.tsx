@@ -13,6 +13,7 @@ function AdminEventEdit() {
   
   const event = events.find(e => e.id === id);
   const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // We keep a local copy of formData for editing
   const [formData, setFormData] = useState(event || {} as any);
@@ -23,14 +24,15 @@ function AdminEventEdit() {
 
   if (!event) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateEvent(id, formData);
+    setIsSaving(true);
+    await updateEvent(id, formData);
+    setIsSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
 
-  return (
   return (
     <form onSubmit={handleSubmit} className="bg-white border border-zinc-200 shadow-sm rounded-3xl p-8 space-y-8 text-zinc-900">
       <div className="grid md:grid-cols-2 gap-6">
@@ -50,11 +52,11 @@ function AdminEventEdit() {
         </div>
         <div className="space-y-2">
           <label className="text-sm font-bold">Date</label>
-          <input value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:ring-2 ring-[#ff3b30]" />
+          <input type="date" required value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:ring-2 ring-[#ff3b30] text-zinc-900" />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-bold">Venue</label>
-          <input value={formData.details?.venue} onChange={e => setFormData({ ...formData, details: { ...formData.details, venue: e.target.value }})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:ring-2 ring-[#ff3b30]" />
+          <input value={formData.venue || ''} onChange={e => setFormData({ ...formData, venue: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:ring-2 ring-[#ff3b30]" />
         </div>
       </div>
 
@@ -65,7 +67,7 @@ function AdminEventEdit() {
 
       <div className="space-y-2">
         <label className="text-sm font-bold">Detailed Overview</label>
-        <textarea rows={5} value={formData.details?.overview} onChange={e => setFormData({ ...formData, details: { ...formData.details, overview: e.target.value }})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:ring-2 ring-[#ff3b30] resize-none" />
+        <textarea rows={5} value={formData.overview || ''} onChange={e => setFormData({ ...formData, overview: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:ring-2 ring-[#ff3b30] resize-none" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -84,8 +86,8 @@ function AdminEventEdit() {
 
       <div className="flex items-center justify-end gap-4 pt-4">
         {saved && <span className="text-sm text-green-500 flex items-center gap-1 font-bold"><CheckCircle className="size-4" /> Saved!</span>}
-        <button type="submit" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl gradient-brand text-white font-bold shadow-glow hover:scale-105 transition-transform">
-          <Save className="size-5" /> Save Changes
+        <button disabled={isSaving} type="submit" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl gradient-brand text-white font-bold shadow-glow hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100">
+          <Save className="size-5" /> {isSaving ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </form>

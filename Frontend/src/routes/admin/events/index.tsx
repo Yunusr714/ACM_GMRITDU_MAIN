@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEventStore } from "@/lib/store";
-import { PlusCircle, Search, Edit, Trash2, FolderOpen, Image as ImageIcon } from "lucide-react";
+import { PlusCircle, Search, Edit, Trash2, FolderOpen, Image as ImageIcon, MapPin } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/admin/events/")({
@@ -69,17 +69,24 @@ function AdminEventsList() {
                       <div className="font-bold text-base">{e.title}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-zinc-500">{e.date}</td>
+                  <td className="px-6 py-4">
+                    <div className="text-zinc-900">{e.date}</div>
+                    {(e.venue || e.details?.venue) && (
+                      <div className="flex items-center gap-1 text-xs text-zinc-500 mt-1">
+                        <MapPin className="size-3" /> {e.venue || e.details?.venue}
+                      </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <span className="px-3 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-semibold">{e.category}</span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3 text-xs font-semibold text-zinc-500">
                       <span className="flex items-center gap-1" title="Files">
-                        <FolderOpen className="size-4" /> {e.files.length}
+                        <FolderOpen className="size-4" /> {e.files?.length || 0}
                       </span>
                       <span className="flex items-center gap-1" title="Images">
-                        <ImageIcon className="size-4" /> {e.details.gallery.length}
+                        <ImageIcon className="size-4" /> {e.details?.gallery?.length || 0}
                       </span>
                     </div>
                   </td>

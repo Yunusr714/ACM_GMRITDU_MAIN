@@ -10,8 +10,8 @@ function AdminDashboard() {
   const { events } = useEventStore();
   
   const totalEvents = events.length;
-  const totalFiles = events.reduce((acc, e) => acc + e.files.length, 0);
-  const totalImages = events.reduce((acc, e) => acc + e.details.gallery.length, 0);
+  const totalFiles = events.reduce((acc, e) => acc + (e.files?.length || 0), 0);
+  const totalImages = events.reduce((acc, e) => acc + (e.details?.gallery?.length || 0), 0);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

@@ -11,6 +11,9 @@ function AdminEventsNew() {
   const { addEvent } = useEventStore();
   const navigate = useNavigate();
 
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -23,34 +26,56 @@ function AdminEventsNew() {
     registerUrl: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     const id = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Date.now();
+    let coverUrl = formData.image || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80";
+
+    if (coverFile) {
+      try {
+        const uploadData = new FormData();
+        uploadData.append("file", coverFile);
+        const res = await fetch("http://localhost:5000/api/events/" + id + "/images", {
+          method: "POST",
+          body: uploadData,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          coverUrl = data.url;
+        }
+      } catch (err) {
+        console.error("Cover upload failed", err);
+      }
+    }
     
-    addEvent({
+    await addEvent({
       id,
       title: formData.title,
       date: formData.date,
       category: formData.category,
       desc: formData.desc,
-      image: formData.image || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80", // fallback
+      image: coverUrl,
       registerUrl: formData.registerUrl,
+      overview: formData.overview,
+      venue: formData.venue || "TBD",
       details: {
         participants: "0",
         teams: "0",
         mentors: "0",
         speakers: [],
         organizers: ["ACM Student Chapter"],
-        venue: formData.venue || "TBD",
-        overview: formData.overview,
         objectives: [],
         impact: [],
-        gallery: [formData.image],
+        gallery: [coverUrl],
         duration: formData.duration || "1 Day",
       },
       files: [],
     });
 
+    setIsSubmitting(false);
     navigate({ to: "/admin/events/$id", params: { id } });
   };
 
@@ -83,7 +108,7 @@ function AdminEventsNew() {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-bold">Date</label>
-            <input required value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:ring-2 ring-[#ff3b30] placeholder:text-zinc-400" placeholder="e.g. Oct 24, 2026" />
+            <input type="date" required value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:ring-2 ring-[#ff3b30] text-zinc-900" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-bold">Venue</label>
@@ -110,15 +135,18 @@ function AdminEventsNew() {
             <label className="text-sm font-bold">Upload Cover Image</label>
             <input required={!formData.image} type="file" accept="image/*" onChange={e => {
               const file = e.target.files?.[0];
-              if (file) setFormData({ ...formData, image: URL.createObjectURL(file) });
+              if (file) {
+                setCoverFile(file);
+                setFormData({ ...formData, image: URL.createObjectURL(file) });
+              }
             }} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2 outline-none focus:ring-2 ring-[#ff3b30] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#ff3b30] file:text-white hover:file:bg-[#ff3b30]/90 text-zinc-600" />
             {formData.image && <p className="text-xs text-green-500 mt-1">Image selected successfully.</p>}
           </div>
         </div>
 
         <div className="pt-4 flex justify-end">
-          <button type="submit" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl gradient-brand text-white font-bold shadow-glow hover:scale-105 transition-transform">
-            <Save className="size-5" /> Save Event
+          <button disabled={isSubmitting} type="submit" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl gradient-brand text-white font-bold shadow-glow hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100">
+            <Save className="size-5" /> {isSubmitting ? "Saving..." : "Save Event"}
           </button>
         </div>
       </form>
