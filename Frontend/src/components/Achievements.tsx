@@ -1,9 +1,9 @@
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import a1 from "@/assets/achievement-1.jpg";
-import a2 from "@/assets/achievement-2.jpg";
-import a3 from "@/assets/achievement-3.jpg";
+import a1 from "@/assets/achievement-1.jpeg";
+import a2 from "@/assets/achievement-2.jpeg";
+import a3 from "@/assets/achievement-3.jpeg";
 
 const items = [
   { img: a1, title: "Smart India Hackathon Finalist", year: "2025", category: "Hackathon", desc: "Selected among top 100 teams nationally for our AI-powered civic tech solution." },

@@ -4,9 +4,9 @@ import ai from "@/assets/event-ai.jpg";
 import web from "@/assets/event-web.jpg";
 import hack from "@/assets/event-hack.jpg";
 import cp from "@/assets/event-cp.jpg";
-import a1 from "@/assets/achievement-1.jpg";
-import a2 from "@/assets/achievement-2.jpg";
-import a3 from "@/assets/achievement-3.jpg";
+import a1 from "@/assets/achievement-1.jpeg";
+import a2 from "@/assets/achievement-2.jpeg";
+import a3 from "@/assets/achievement-3.jpeg";
 
 const imgs = [ai, web, hack, cp, a1, a2, a3];
 

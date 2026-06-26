@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import acmIcon from "@/assets/acm_icon.png";
 
 const links = [
   { to: "/", label: "Home" },
@@ -20,9 +21,9 @@ export function Navbar() {
       transition={{ duration: 0.5 }}
       className="fixed top-4 inset-x-4 z-50 mx-auto max-w-6xl"
     >
-      <nav className="glass-card rounded-2xl px-5 py-3 flex items-center justify-between">
+      <nav className="glass bg-white rounded-2xl px-5 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
-          <span className="size-9 rounded-xl gradient-brand grid place-items-center text-white font-bold shadow-glow">A</span>
+          <img src={acmIcon} alt="ACM Logo" className="size-9 object-contain" />
           <span className="font-display font-bold text-lg">ACM <span className="text-muted-foreground font-medium">Chapter</span></span>
         </Link>
         <div className="hidden md:flex items-center gap-7 text-sm font-medium">

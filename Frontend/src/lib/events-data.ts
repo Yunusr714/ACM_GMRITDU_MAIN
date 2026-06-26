@@ -8,9 +8,9 @@ import upHack1 from "@/assets/upcoming-hack-1.jpg";
 import upHack2 from "@/assets/upcoming-hack-2.jpg";
 import upWeb1 from "@/assets/upcoming-web-1.jpg";
 import upWeb2 from "@/assets/upcoming-web-2.jpg";
-import a1 from "@/assets/achievement-1.jpg";
-import a2 from "@/assets/achievement-2.jpg";
-import a3 from "@/assets/achievement-3.jpg";
+import a1 from "@/assets/achievement-1.jpeg";
+import a2 from "@/assets/achievement-2.jpeg";
+import a3 from "@/assets/achievement-3.jpeg";
 
 export type Event = {
   id: string;

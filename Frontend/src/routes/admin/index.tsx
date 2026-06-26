@@ -64,6 +64,12 @@ function AdminDashboard() {
               </div>
               <span className="font-bold">Create New Event</span>
             </Link>
+            <Link to="/admin/team" className="flex items-center gap-3 p-4 rounded-2xl bg-[#ffb800]/10 border border-[#ffb800]/20 hover:bg-[#ffb800]/20 text-[#ffb800] transition-colors group">
+              <div className="p-2 rounded-full bg-[#ffb800]/20 group-hover:scale-110 transition-transform">
+                <Users className="size-5" />
+              </div>
+              <span className="font-bold">Manage Team</span>
+            </Link>
           </div>
         </div>
       </div>

@@ -1,16 +1,14 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Code2, Trophy, Network } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 
-import heroVisual from "@/assets/hero-visual.jpg";
-import a1 from "@/assets/achievement-1.jpg";
-import a2 from "@/assets/achievement-2.jpg";
-import a3 from "@/assets/achievement-3.jpg";
-import e1 from "@/assets/event-hack.jpg";
-import e2 from "@/assets/event-ai.jpg";
+import image1 from "@/assets/caurosel_images/image1.jpeg";
+import image2 from "@/assets/caurosel_images/image2.jpeg";
+import image3 from "@/assets/caurosel_images/image3.jpeg";
+import image4 from "@/assets/caurosel_images/image4.jpeg";
 
-const slides = [heroVisual, a1, e1, a2, e2, a3];
+const slides = [image1, image2, image3, image4];
 
 export function Hero() {
   const [emblaRef] = useEmblaCarousel(
@@ -49,102 +47,38 @@ export function Hero() {
       <div className="absolute -top-20 -left-32 size-[420px] rounded-full bg-[#ff3b30]/25 blur-3xl animate-blob -z-10" />
       <div className="absolute top-40 -right-40 size-[480px] rounded-full bg-[#ffb800]/30 blur-3xl animate-blob -z-10" style={{ animationDelay: "3s" }} />
 
-      <div className="relative max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+      <div className="relative max-w-4xl mx-auto px-6 flex flex-col items-center justify-center text-center min-h-[60vh]">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-white/95 rounded-3xl p-8 md:p-10"
+          className="w-full flex flex-col items-center"
         >
-          <span className="inline-flex items-center gap-2 bg-muted rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide">
-            <Sparkles className="size-3.5 text-[#ff3b30]" />
+          <span className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide text-white shadow-sm">
+            <Sparkles className="size-3.5 text-yellow-300" />
             ACM STUDENT CHAPTER
           </span>
-          <h1 className="mt-5 text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.1]">
-            Empowering Future <span className="gradient-text">Innovators</span> Through Technology & Research
+          <h1 className="mt-6 text-3xl md:text-5xl lg:text-6xl font-bold leading-[1.15] text-white drop-shadow-[0_4px_8px_rgba(200,70,62,0.8)]">
+            Empowering Future Innovators<br className="hidden md:block" /> Through Technology & Research
           </h1>
-          <p className="mt-5 text-base text-muted-foreground max-w-xl leading-relaxed">
+          <p className="mt-6 text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed drop-shadow-sm">
             Join a vibrant community of developers, researchers, and innovators. Workshops, hackathons, coding contests, and industry-driven events.
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
             <a
               href="/events"
-              className="group inline-flex items-center gap-2 rounded-2xl gradient-brand text-white px-6 py-3.5 font-semibold hover:scale-[1.02] transition-transform"
+              className="group inline-flex items-center gap-2 rounded-2xl bg-white text-rose-600 px-8 py-4 font-bold text-lg hover:scale-[1.02] transition-transform shadow-xl"
             >
-              Explore Events <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+              Explore Events <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform" />
             </a>
             <a
               href="#join"
-              className="inline-flex items-center gap-2 rounded-2xl bg-white border border-border px-6 py-3.5 font-semibold hover:bg-muted transition-colors"
+              className="inline-flex items-center gap-2 rounded-2xl bg-black/20 backdrop-blur-md text-white border border-white/20 px-8 py-4 font-bold text-lg hover:bg-black/30 transition-colors shadow-lg"
             >
               Join ACM
             </a>
           </div>
-          <div className="mt-8 flex items-center gap-6 text-sm">
-            <div className="flex -space-x-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="size-9 rounded-full border-2 border-background gradient-brand"
-                  style={{ filter: `hue-rotate(${i * 15}deg)` }}
-                />
-              ))}
-            </div>
-            <div>
-              <div className="font-bold">500+ Members</div>
-              <div className="text-muted-foreground text-xs">Active across 4 years</div>
-            </div>
-          </div>
-        </motion.div>
 
-        {/* Floating stat cards — clean, no neumorphism */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="relative h-[420px] lg:h-[500px] hidden lg:block"
-        >
-          <motion.div
-            className="absolute top-6 left-4 bg-white rounded-3xl p-5 flex items-center gap-3 shadow-sm"
-            animate={{ y: [0, -12, 0] }}
-            transition={{ duration: 4, repeat: Infinity }}
-          >
-            <div className="size-12 rounded-2xl gradient-warm grid place-items-center text-white">
-              <Code2 className="size-5" />
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Active Projects</div>
-              <div className="font-bold text-lg">24 Live</div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="absolute top-1/2 right-2 -translate-y-1/2 bg-white rounded-3xl p-5 flex items-center gap-3 shadow-sm"
-            animate={{ y: [0, 14, 0] }}
-            transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-          >
-            <div className="size-12 rounded-2xl gradient-brand grid place-items-center text-white">
-              <Trophy className="size-5" />
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Awards</div>
-              <div className="font-bold text-lg">10+ National</div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="absolute bottom-6 left-12 bg-white rounded-3xl p-5 flex items-center gap-3 shadow-sm"
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 4.5, repeat: Infinity, delay: 0.5 }}
-          >
-            <div className="size-12 rounded-2xl gradient-warm grid place-items-center text-white">
-              <Network className="size-5" />
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Network</div>
-              <div className="font-bold text-lg">50+ Events</div>
-            </div>
-          </motion.div>
         </motion.div>
       </div>
     </section>

@@ -3,6 +3,7 @@ import cors from "cors";
 import path from "path";
 import { AppDataSource } from "./config/data-source";
 import { eventRouter } from "./routes/eventRoutes";
+import { teamRouter } from "./routes/teamRoutes";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // API Routes
 app.use("/api/events", eventRouter);
+app.use("/api/team", teamRouter);
 
 const PORT = process.env.PORT || 5000;
 
