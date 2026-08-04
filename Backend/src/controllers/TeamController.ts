@@ -76,7 +76,7 @@ export class TeamController {
 
             const protocol = req.protocol;
             const host = req.get("host");
-            const imageUrl = `${protocol}://${host}/${file.path.replace(/\\/g, "/")}`;
+            const imageUrl = `${protocol}://${host}/uploads/images/${file.filename}`;
 
             member.image = imageUrl;
             const updated = await this.repository.save(member);

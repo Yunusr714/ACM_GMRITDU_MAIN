@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
@@ -65,18 +66,19 @@ export function Hero() {
             Join a vibrant community of developers, researchers, and innovators. Workshops, hackathons, coding contests, and industry-driven events.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <a
-              href="/events"
+            <Link
+              to="/events"
               className="group inline-flex items-center gap-2 rounded-2xl bg-white text-rose-600 px-8 py-4 font-bold text-lg hover:scale-[1.02] transition-transform shadow-xl"
             >
               Explore Events <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform" />
-            </a>
-            <a
-              href="#join"
+            </Link>
+            <Link
+              to="/"
+              hash="join"
               className="inline-flex items-center gap-2 rounded-2xl bg-black/20 backdrop-blur-md text-white border border-white/20 px-8 py-4 font-bold text-lg hover:bg-black/30 transition-colors shadow-lg"
             >
               Join ACM
-            </a>
+            </Link>
           </div>
 
         </motion.div>

@@ -59,7 +59,9 @@ export class EventController {
                 return res.status(400).json({ error: "No file uploaded" });
             }
             
-            const fileUrl = `http://localhost:5000/uploads/documents/${req.file.filename}`;
+            const protocol = req.protocol;
+            const host = req.get("host");
+            const fileUrl = `${protocol}://${host}/uploads/documents/${req.file.filename}`;
             
             const fileData = {
                 name: req.file.originalname,
@@ -89,7 +91,9 @@ export class EventController {
                 return res.status(400).json({ error: "No file uploaded" });
             }
             
-            const imageUrl = `http://localhost:5000/uploads/images/${req.file.filename}`;
+            const protocol = req.protocol;
+            const host = req.get("host");
+            const imageUrl = `${protocol}://${host}/uploads/images/${req.file.filename}`;
             res.status(201).json({ url: imageUrl });
         } catch (error: any) {
             res.status(400).json({ error: error.message });

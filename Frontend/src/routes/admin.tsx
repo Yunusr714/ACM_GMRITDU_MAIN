@@ -1,9 +1,19 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/admin")({
+  beforeLoad: () => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("admin_token");
+      if (!token) {
+        throw redirect({
+          to: "/login",
+        });
+      }
+    }
+  },
   component: AdminLayout,
 });
 

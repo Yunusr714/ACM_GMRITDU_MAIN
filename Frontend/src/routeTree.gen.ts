@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -24,6 +25,11 @@ import { Route as AdminEventsIdIndexRouteImport } from './routes/admin/events/$i
 import { Route as AdminEventsIdImagesRouteImport } from './routes/admin/events/$id/images'
 import { Route as AdminEventsIdFilesRouteImport } from './routes/admin/events/$id/files'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsRoute = EventsRouteImport.update({
   id: '/events',
   path: '/events',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/events': typeof EventsRoute
+  '/login': typeof LoginRoute
   '/events/$id': typeof EventsIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/events/$id': typeof AdminEventsIdRouteWithChildren
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
+  '/login': typeof LoginRoute
   '/events/$id': typeof EventsIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/events/new': typeof AdminEventsNewRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/events': typeof EventsRoute
+  '/login': typeof LoginRoute
   '/events_/$id': typeof EventsIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/events/$id': typeof AdminEventsIdRouteWithChildren
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/events'
+    | '/login'
     | '/events/$id'
     | '/admin/'
     | '/admin/events/$id'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/events'
+    | '/login'
     | '/events/$id'
     | '/admin'
     | '/admin/events/new'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/events'
+    | '/login'
     | '/events_/$id'
     | '/admin/'
     | '/admin/events/$id'
@@ -195,11 +207,19 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   EventsRoute: typeof EventsRoute
+  LoginRoute: typeof LoginRoute
   EventsIdRoute: typeof EventsIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events': {
       id: '/events'
       path: '/events'
@@ -343,18 +363,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   EventsRoute: EventsRoute,
+  LoginRoute: LoginRoute,
   EventsIdRoute: EventsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

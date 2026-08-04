@@ -12,10 +12,13 @@ const ensureDir = (dirPath: string) => {
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const isImage = file.mimetype.startsWith("image/");
-        const folder = isImage ? "uploads/images" : "uploads/documents";
+        const folder = isImage ? "images" : "documents";
         
-        ensureDir(path.join(process.cwd(), folder));
-        cb(null, folder);
+        // __dirname is dist/middlewares, so we go up two levels to reach the root uploads dir
+        const uploadPath = path.join(__dirname, "../../uploads", folder);
+        
+        ensureDir(uploadPath);
+        cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);

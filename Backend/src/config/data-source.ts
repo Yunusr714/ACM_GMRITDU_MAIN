@@ -14,7 +14,7 @@ export const AppDataSource = new DataSource({
     database: process.env.DB_NAME,
     synchronize: true, // Auto-create tables (good for dev)
     logging: false,
-    entities: [path.join(__dirname, "../entities/**/*.ts")],
+    entities: [path.join(__dirname, "../entities/**/*.{ts,js}")],
     migrations: [],
     subscribers: [],
 });

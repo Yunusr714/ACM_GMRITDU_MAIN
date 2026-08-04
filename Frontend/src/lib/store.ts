@@ -1,14 +1,14 @@
 import { Event, EventDetail } from "./events-data";
 import { useCallback, useSyncExternalStore } from "react";
 
-const API_URL = "http://localhost:5000/api";
-const BACKEND_URL = "http://localhost:5000";
+const API_URL = "https://gmritchapter.hosting.acm.org/api";
+const BACKEND_URL = "https://gmritchapter.hosting.acm.org";
 
 // Ensure upload URLs always point to the backend, not the frontend
 function normalizeUrl(url: string): string {
   if (url.includes("/uploads/")) {
     // Replace any host:port with the backend URL
-    return url.replace(/https?:\/\/[^/]+\/uploads/, `${BACKEND_URL}/uploads`);
+    return url.replace(/https?:\/\/[^/]+\/uploads/, `${API_URL}/uploads`);
   }
   return url;
 }
@@ -40,7 +40,17 @@ class EventStore {
       const response = await fetch(`${API_URL}/events`);
       if (response.ok) {
         const events = await response.json();
-        this.state = { events, isLoading: false };
+        // Normalize URLs for all events
+        const normalizedEvents = events.map((e: StoredEvent) => ({
+          ...e,
+          image: e.image ? normalizeUrl(e.image) : e.image,
+          details: {
+            ...e.details,
+            gallery: e.details?.gallery ? e.details.gallery.map(url => normalizeUrl(url)) : [],
+          },
+          files: e.files ? e.files.map(f => ({ ...f, url: normalizeUrl(f.url) })) : [],
+        }));
+        this.state = { events: normalizedEvents, isLoading: false };
       } else {
         this.state = { ...this.state, isLoading: false };
       }

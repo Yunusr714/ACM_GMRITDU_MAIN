@@ -7,9 +7,9 @@ import acmIcon from "@/assets/acm_icon.png";
 const links = [
   { to: "/", label: "Home" },
   { to: "/events", label: "Events" },
-  { to: "/#about", label: "About" },
-  { to: "/#team", label: "Team" },
-  { to: "/#contact", label: "Contact" },
+  { to: "/", hash: "about", label: "About" },
+  { to: "/", hash: "team", label: "Team" },
+  { to: "/", hash: "contact", label: "Contact" },
 ];
 
 export function Navbar() {
@@ -28,12 +28,12 @@ export function Navbar() {
         </Link>
         <div className="hidden md:flex items-center gap-7 text-sm font-medium">
           {links.map(l => (
-            <a key={l.to} href={l.to} className="text-foreground/70 hover:text-foreground transition-colors">{l.label}</a>
+            <Link key={l.label} to={l.to as any} hash={l.hash} className="text-foreground/70 hover:text-foreground transition-colors">{l.label}</Link>
           ))}
         </div>
-        <a href="/#join" className="hidden md:inline-flex items-center gap-2 rounded-xl gradient-brand text-white px-4 py-2 text-sm font-semibold shadow-soft hover:shadow-glow transition-shadow">
+        <Link to="/" hash="join" className="hidden md:inline-flex items-center gap-2 rounded-xl gradient-brand text-white px-4 py-2 text-sm font-semibold shadow-soft hover:shadow-glow transition-shadow">
           Join ACM
-        </a>
+        </Link>
         <button onClick={() => setOpen(!open)} className="md:hidden p-2" aria-label="Menu">
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
@@ -41,9 +41,9 @@ export function Navbar() {
       {open && (
         <div className="md:hidden mt-2 glass-card rounded-2xl p-4 flex flex-col gap-3">
           {links.map(l => (
-            <a key={l.to} href={l.to} onClick={() => setOpen(false)} className="text-sm font-medium">{l.label}</a>
+            <Link key={l.label} to={l.to as any} hash={l.hash} onClick={() => setOpen(false)} className="text-sm font-medium">{l.label}</Link>
           ))}
-          <a href="/#join" className="rounded-xl gradient-brand text-white px-4 py-2 text-sm font-semibold text-center">Join ACM</a>
+          <Link to="/" hash="join" onClick={() => setOpen(false)} className="rounded-xl gradient-brand text-white px-4 py-2 text-sm font-semibold text-center">Join ACM</Link>
         </div>
       )}
     </motion.header>

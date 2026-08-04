@@ -1,12 +1,12 @@
 import { useCallback, useSyncExternalStore } from "react";
 
-const API_URL = "http://localhost:5000/api";
-const BACKEND_URL = "http://localhost:5000";
+const API_URL = "https://gmritchapter.hosting.acm.org/api";
+const BACKEND_URL = "https://gmritchapter.hosting.acm.org";
 
 function normalizeUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   if (url.includes("/uploads/")) {
-    return url.replace(/https?:\/\/[^/]+\/uploads/, `${BACKEND_URL}/uploads`);
+    return url.replace(/https?:\/\/[^/]+\/uploads/, `${API_URL}/uploads`);
   }
   return url;
 }
